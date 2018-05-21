@@ -121,15 +121,6 @@ TEST(Mov, MovR16Imm16)
     }
 }
 
-TEST(Mov, MovR64Imm64)
-{
-    {
-        CodeGenerator gen;
-        gen.mov(RAX, Imm64{5});
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t> { 0x48, 0xB8, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } ));
-    }
-}
-
 TEST(Mov, MovRM16Imm16)
 {
     {

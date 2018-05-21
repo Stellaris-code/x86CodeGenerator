@@ -32,14 +32,8 @@ void CodeGenerator::inc(ModRM rm)
 {
     rm.set_reg(0);
 
-    if (rm.width == QWord)
+    if (rm.width == Byte)
     {
-        emit<uint8_t>(REX{1, RAX, RAX, rm.needs_rex?R8:RAX});
-        emit<uint8_t>(0xFF);
-    }
-    else if (rm.width == Byte)
-    {
-        if (rm.needs_rex) emit<uint8_t>(REX{0, RAX, RAX, rm.needs_rex?R8:RAX});
         emit<uint8_t>(0xFE);
     }
     else
@@ -66,14 +60,8 @@ void CodeGenerator::dec(ModRM rm)
 {
     rm.set_reg(1);
 
-    if (rm.width == QWord)
+    if (rm.width == Byte)
     {
-        emit<uint8_t>(REX{1, RAX, RAX, rm.needs_rex?R8:RAX});
-        emit<uint8_t>(0xFF);
-    }
-    else if (rm.width == Byte)
-    {
-        if (rm.needs_rex) emit<uint8_t>(REX{0, RAX, RAX, rm.needs_rex?R8:RAX});
         emit<uint8_t>(0xFE);
     }
     else

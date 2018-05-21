@@ -48,8 +48,6 @@ void CodeGenerator::call(ModRM rm)
     rm.set_reg(2);
 
     if (rm.width == Word) emit<uint8_t>(operand_size_override);
-    else if (rm.needs_rex)
-        emit<uint8_t>(REX{0, RAX, RAX, R8});
 
     emit<uint8_t>(0xFF);
 

@@ -109,13 +109,6 @@ void CodeGenerator::mov(GPR32 reg, Imm32 imm)
     emit<uint32_t>(imm.val);
 }
 
-void CodeGenerator::mov(GPR64 reg, Imm64 imm)
-{
-    emit<uint8_t>(REX{1, RAX, RAX, reg});
-    emit<uint8_t>(0xB8 + (reg&0b111));
-    emit<uint64_t>(imm.val);
-}
-
 void CodeGenerator::mov(ModRM rm, Imm8 imm)
 {
     rm.set_reg(0);

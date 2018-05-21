@@ -45,13 +45,4 @@ void CodeGenerator::lea(GPR32 reg, ModRM rm)
     emit_modrm(rm);
 }
 
-void CodeGenerator::lea(GPR64 reg, ModRM rm)
-{
-    rm.set_reg(reg);
-
-    emit<uint8_t>(REX{1, RAX, RAX, reg});
-    emit<uint8_t>(0x8D);
-    emit_modrm(rm);
-}
-
 }

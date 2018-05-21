@@ -66,4 +66,8 @@ int main(int argc, char* argv[])
 
     std::ofstream out("out.bin");
 
+    for (auto b : elf_vec)
+    {
+        out << b;
+    }
 }

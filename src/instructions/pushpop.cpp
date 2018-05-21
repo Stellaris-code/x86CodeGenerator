@@ -49,13 +49,6 @@ void CodeGenerator::push(GPR32 reg)
 {
     emit<uint8_t>(0x50 + reg);
 }
-void CodeGenerator::push(GPR64 reg)
-{
-    if (reg >= R8)
-        emit<uint8_t>(REX{0, RAX, RAX, reg});
-
-    emit<uint8_t>(0x50 + (reg&0b111));
-}
 
 void CodeGenerator::push(Imm8 imm)
 {
@@ -96,14 +89,6 @@ void CodeGenerator::pop(GPR16 reg)
 void CodeGenerator::pop(GPR32 reg)
 {
     emit<uint8_t>(0x58 + reg);
-}
-
-void CodeGenerator::pop(GPR64 reg)
-{
-    if (reg >= R8)
-        emit<uint8_t>(REX{0, RAX, RAX, reg});
-
-    emit<uint8_t>(0x58 + (reg&0b111));
 }
 
 }

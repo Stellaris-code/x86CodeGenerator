@@ -112,11 +112,9 @@ public:
     void sub(ModRM, GPR8);
     void sub(ModRM, GPR16);
     void sub(ModRM, GPR32);
-    void sub(ModRM, GPR64);
     void sub(GPR8, ModRM);
     void sub(GPR16, ModRM);
     void sub(GPR32, ModRM);
-    void sub(GPR64, ModRM);
 
     void add(ModRM, Imm8);
     void add(ModRM, Imm16);
@@ -124,11 +122,9 @@ public:
     void add(ModRM, GPR8);
     void add(ModRM, GPR16);
     void add(ModRM, GPR32);
-    void add(ModRM, GPR64);
     void add(GPR8, ModRM);
     void add(GPR16, ModRM);
     void add(GPR32, ModRM);
-    void add(GPR64, ModRM);
 
     void jmp(Rel8);
     void jmp(Rel16);
@@ -151,19 +147,16 @@ public:
     void mov(GPR8 , Imm8 );
     void mov(GPR16, Imm16);
     void mov(GPR32, Imm32);
-    void mov(GPR64, Imm64);
     void mov(ModRM , Imm8);
     void mov(ModRM, Imm16);
     void mov(ModRM, Imm32);
 
     void lea(GPR16, ModRM);
     void lea(GPR32, ModRM);
-    void lea(GPR64, ModRM);
 
     void push(ModRM);
     void push(GPR16);
     void push(GPR32);
-    void push(GPR64);
     void push(Imm8);
     void push(Imm16);
     void push(Imm32);
@@ -171,7 +164,6 @@ public:
     void pop(ModRM);
     void pop(GPR16);
     void pop(GPR32);
-    void pop(GPR64);
 
     void inc(ModRM);
     void inc(GPR16);

@@ -37,8 +37,7 @@ enum PtrWidth
 {
     Byte,
     Word,
-    DWord,
-    QWord
+    DWord
 };
 
 constexpr uint8_t make_modrm(uint8_t mod, uint8_t rm, uint8_t reg = 0)
@@ -205,11 +204,6 @@ struct ModRM
     {
         assert(reg != ESP && reg != EBP);
     }
-    ModRM(IndirectReg, GPR64 reg, PtrWidth in_width)
-        : modrm{make_modrm(0, reg&0b111)}, width(in_width), is_64(true), needs_rex(reg>=R8)
-    {
-        assert(reg != RSP && reg != RBP);
-    }
 
     explicit ModRM(int32_t disp)
         : modrm{make_modrm(0, 0b101)}, displacement{disp}, width(DWord)
@@ -256,9 +250,6 @@ struct ModRM
     ModRM(GPR32 reg)
         : modrm{make_modrm(0b11, reg)}, width(DWord)
     {}
-    ModRM(GPR64 reg)
-        : modrm{make_modrm(0b11, reg&0b111)}, width(QWord), is_64(true), needs_rex(reg>=R8)
-    {}
 
     uint8_t mod() const
     { return modrm >> 6; }
@@ -279,24 +270,6 @@ struct ModRM
     const SIB sib {EAX};
     const int32_t displacement { 0 };
     const PtrWidth width;
-    bool is_64 { false };
-    bool needs_rex { false };
-};
-
-struct REX
-{
-    REX(bool operand64 = 0, GPR64 reg = (GPR64)0, GPR64 index = (GPR64)0, GPR64 base = (GPR64)0)
-    {
-        byte = 0b01000000;
-        byte |= (operand64<<3);
-        byte |= ((reg>=8)<<2);
-        byte |= ((index>=8)<<1);
-        byte |= (base>=8);
-    }
-
-    operator uint8_t() const { return byte; }
-
-    uint8_t byte {};
 };
 
 struct FarPtr
@@ -324,7 +297,6 @@ struct Immediate
 using Imm8  = Immediate<uint8_t>;
 using Imm16 = Immediate<uint16_t>;
 using Imm32 = Immediate<uint32_t>;
-using Imm64 = Immediate<uint64_t>;
 
 template <typename T>
 struct Relative
@@ -340,10 +312,6 @@ using Rel16 = Relative<int16_t>;
 using Rel32 = Relative<int32_t>;
 
 inline ModRM indirect(GPR32 reg, PtrWidth width = DWord)
-{
-    return ModRM{IndirectReg{}, reg, width};
-}
-inline ModRM indirect(GPR64 reg, PtrWidth width = DWord)
 {
     return ModRM{IndirectReg{}, reg, width};
 }
