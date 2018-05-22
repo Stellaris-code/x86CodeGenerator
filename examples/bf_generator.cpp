@@ -123,18 +123,7 @@ void BrainfuckGenerator::call_function(uint32_t addr)
 {
     int32_t offset = addr - (gen.current_index() + 5); // max size of the call instruction
 
-#ifndef __x86_64__ // call rel16 is unsupported in long mode
-    if (offset > std::numeric_limits<int16_t>::min() && offset < std::numeric_limits<int16_t>::max())
-    {
-        gen.call(Rel16{(int16_t)offset});
-    }
-    else
-    {
-        gen.call(Rel32{offset});
-    }
-#else
     gen.call(Rel32{offset});
-#endif
 }
 
 void BrainfuckGenerator::loop_begin()
