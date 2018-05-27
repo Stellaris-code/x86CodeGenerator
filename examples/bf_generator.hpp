@@ -47,25 +47,42 @@ struct GeneratedCode
 
 struct BuildFlags
 {
-    bool bang_is_breakpoint { false };
+    bool hash_is_breakpoint { true };
+    enum OptLevel
+    {
+        None,
+        RunLength,
+        All
+    } opt_level = All;
+    x86gen::PtrWidth cell_width { x86gen::Byte };
+    size_t cell_amount { 0x10000 };
 };
 
 class BrainfuckGenerator
 {
 public:
-    BrainfuckGenerator(BuildFlags = {});
+    BrainfuckGenerator(BuildFlags i_flags = {});
 
     void prologue();
+
+    // elementary ops
 
     void move_forwards(size_t off = 1);
     void move_backwards(size_t off = 1);
     void increment(size_t off = 1);
     void decrement(size_t off = 1);
-    void set(uint8_t val);
     void print();
     void get_input();
     void loop_begin();
     void loop_end();
+
+    // optimized ops
+
+    void scan(int8_t granularity = 1);
+    void set(int8_t offset, uint32_t val);
+    void add(int8_t offset, int32_t val);
+    void add_copy(int8_t offset, int8_t factor);
+    void sub_copy(int8_t offset, int8_t factor);
 
     void breakpoint();
 
@@ -73,7 +90,21 @@ public:
 
     GeneratedCode retrieve_data() &&;
 
+    int min_offset() const
+    { return INT8_MIN; }
+    int max_offset() const
+    { return INT8_MAX; }
+    unsigned long max_value() const
+    { return (0x1ul << (flags.cell_width*8)) - 1; }
+    long min_value() const
+    { return -max_value()-1; }
+
+public:
+    const BuildFlags flags;
+
 private:
+    void test_current_cell();
+
     void define_putchar();
     void define_getchar();
 
@@ -98,7 +129,6 @@ private:
 
         LinkEntry(size_t in_idx, size_t in_lbl, LabelType in_type) : ins_idx(in_idx), label(in_lbl), type(in_type) {}
     };
-    const BuildFlags m_flags;
 
     uint32_t putchar_addr;
     uint32_t getchar_addr;

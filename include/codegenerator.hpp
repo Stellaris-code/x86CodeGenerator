@@ -89,6 +89,16 @@ public:
     size_t current_index() const { return m_idx; }
 
 public:
+    void std();
+    void cld();
+
+    void repe_scasb();
+    void repe_scasw();
+    void repe_scasd();
+    void repne_scasb();
+    void repne_scasw();
+    void repne_scasd();
+
     void call(Rel16);
     void call(Rel32);
     void call(ModRM);
@@ -125,6 +135,23 @@ public:
     void add(GPR8, ModRM);
     void add(GPR16, ModRM);
     void add(GPR32, ModRM);
+
+    void xor_(ModRM, Imm8);
+    void xor_(ModRM, Imm16);
+    void xor_(ModRM, Imm32);
+    void xor_(ModRM, GPR8);
+    void xor_(ModRM, GPR16);
+    void xor_(ModRM, GPR32);
+    void xor_(GPR8, ModRM);
+    void xor_(GPR16, ModRM);
+    void xor_(GPR32, ModRM);
+
+    void imul(GPR16, ModRM);
+    void imul(GPR32, ModRM);
+    void imul(GPR16, ModRM, Imm8);
+    void imul(GPR32, ModRM, Imm8);
+    void imul(GPR16, Imm8);
+    void imul(GPR32, Imm8);
 
     void jmp(Rel8);
     void jmp(Rel16);

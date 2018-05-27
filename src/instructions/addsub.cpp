@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 #include "codegenerator.hpp"
-
+// TODO : ModRM<8>, etc...
 namespace x86gen
 {
 
@@ -45,6 +45,8 @@ void CodeGenerator::add(ModRM rm, Imm8 imm)
 
 void CodeGenerator::add(ModRM rm, Imm16 imm)
 {
+    assert(rm.width == Word);
+
     rm.set_reg(0);
 
     emit<uint8_t>(operand_size_override);
@@ -55,6 +57,8 @@ void CodeGenerator::add(ModRM rm, Imm16 imm)
 
 void CodeGenerator::add(ModRM rm, Imm32 imm)
 {
+    assert(rm.width == DWord);
+
     rm.set_reg(0);
 
     emit<uint8_t>(0x81);
@@ -64,6 +68,8 @@ void CodeGenerator::add(ModRM rm, Imm32 imm)
 
 void CodeGenerator::add(ModRM rm, GPR8 gpr)
 {
+    assert(rm.width == Byte);
+
     rm.set_reg(gpr);
 
     emit<uint8_t>(0x00);
@@ -72,6 +78,8 @@ void CodeGenerator::add(ModRM rm, GPR8 gpr)
 
 void CodeGenerator::add(ModRM rm, GPR16 gpr)
 {
+    assert(rm.width == Word);
+
     rm.set_reg(gpr);
 
     emit<uint8_t>(operand_size_override);
@@ -81,6 +89,8 @@ void CodeGenerator::add(ModRM rm, GPR16 gpr)
 
 void CodeGenerator::add(ModRM rm, GPR32 gpr)
 {
+    assert(rm.width == DWord);
+
     rm.set_reg(gpr);
 
     emit<uint8_t>(0x01);
@@ -89,6 +99,8 @@ void CodeGenerator::add(ModRM rm, GPR32 gpr)
 
 void CodeGenerator::add(GPR8 reg, ModRM rm)
 {
+    assert(rm.width == Byte);
+
     rm.set_reg(reg);
 
     emit<uint8_t>(0x02);
@@ -97,6 +109,8 @@ void CodeGenerator::add(GPR8 reg, ModRM rm)
 
 void CodeGenerator::add(GPR16 reg, ModRM rm)
 {
+    assert(rm.width == Word);
+
     rm.set_reg(reg);
 
     emit<uint8_t>(operand_size_override);
@@ -106,6 +120,8 @@ void CodeGenerator::add(GPR16 reg, ModRM rm)
 
 void CodeGenerator::add(GPR32 reg, ModRM rm)
 {
+    assert(rm.width == DWord);
+
     rm.set_reg(reg);
 
     emit<uint8_t>(0x03);
@@ -129,6 +145,8 @@ void CodeGenerator::sub(ModRM rm, Imm8 imm)
 
 void CodeGenerator::sub(ModRM rm, Imm16 imm)
 {
+    assert(rm.width == Word);
+
     rm.set_reg(5);
 
     emit<uint8_t>(operand_size_override);
@@ -139,6 +157,8 @@ void CodeGenerator::sub(ModRM rm, Imm16 imm)
 
 void CodeGenerator::sub(ModRM rm, Imm32 imm)
 {
+    assert(rm.width == DWord);
+
     rm.set_reg(5);
 
     emit<uint8_t>(0x81);
@@ -148,6 +168,8 @@ void CodeGenerator::sub(ModRM rm, Imm32 imm)
 
 void CodeGenerator::sub(ModRM rm, GPR8 gpr)
 {
+    assert(rm.width == Byte);
+
     rm.set_reg(gpr);
 
     emit<uint8_t>(0x28);
@@ -156,6 +178,8 @@ void CodeGenerator::sub(ModRM rm, GPR8 gpr)
 
 void CodeGenerator::sub(ModRM rm, GPR16 gpr)
 {
+    assert(rm.width == Word);
+
     rm.set_reg(gpr);
 
     emit<uint8_t>(operand_size_override);
@@ -165,6 +189,8 @@ void CodeGenerator::sub(ModRM rm, GPR16 gpr)
 
 void CodeGenerator::sub(ModRM rm, GPR32 gpr)
 {
+    assert(rm.width == DWord);
+
     rm.set_reg(gpr);
 
     emit<uint8_t>(0x29);
@@ -173,6 +199,8 @@ void CodeGenerator::sub(ModRM rm, GPR32 gpr)
 
 void CodeGenerator::sub(GPR8 reg, ModRM rm)
 {
+    assert(rm.width == Byte);
+
     rm.set_reg(reg);
 
     emit<uint8_t>(0x2A);
@@ -181,6 +209,8 @@ void CodeGenerator::sub(GPR8 reg, ModRM rm)
 
 void CodeGenerator::sub(GPR16 reg, ModRM rm)
 {
+    assert(rm.width == Word);
+
     rm.set_reg(reg);
 
     emit<uint8_t>(operand_size_override);
@@ -190,6 +220,8 @@ void CodeGenerator::sub(GPR16 reg, ModRM rm)
 
 void CodeGenerator::sub(GPR32 reg, ModRM rm)
 {
+    assert(rm.width == DWord);
+
     rm.set_reg(reg);
 
     emit<uint8_t>(0x2B);

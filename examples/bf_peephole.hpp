@@ -1,7 +1,7 @@
 /*
-addsub_tests.cpp
+bf_peephole.hpp
 
-Copyright (c) 21 Yann BOUCHER (yann)
+Copyright (c) 22 Yann BOUCHER (yann)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
+#ifndef BF_PEEPHOLE_HPP
+#define BF_PEEPHOLE_HPP
 
-#include "gtest/gtest.h"
+#include <string_view>
 
-#include "codegenerator.hpp"
-
-namespace
+namespace bfgen
 {
-using namespace x86gen;
 
-TEST(Add, RM32I32)
-{
-    {
-        CodeGenerator gen;
-        gen.add(ECX, Imm32{(uint32_t)0x1234});
+class BrainfuckGenerator;
 
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t>{ 0x81, 0xC1, 0x34, 0x12, 0x00, 0x00 }));
-    }
+// Terminology :
+// 'Atoms' are bits of bf code which doesn't contain any loops
+// [ '>>+--<' ] : the part inside is an atom
+// [ '<<[-]>>' ] : this isn't an atom because it contains a loop inside
+
+// Returns : offset to advance, or -1 if no optimization could be done
+int apply_peephole_optimization(BrainfuckGenerator& gen, std::string_view atom);
+
 }
 
-TEST(Sub, RM32I32)
-{
-    {
-        CodeGenerator gen;
-        gen.sub(ECX, Imm32{(uint32_t)0x123456});
-
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t> { 0x81, 0xE9, 0x56, 0x34, 0x12, 0x00 } ));
-    }
-}
-}
+#endif // BF_PEEPHOLE_HPP

@@ -35,9 +35,9 @@ namespace x86gen
 
 enum PtrWidth
 {
-    Byte,
-    Word,
-    DWord
+    Byte  = 1,
+    Word  = 2,
+    DWord = 4
 };
 
 constexpr uint8_t make_modrm(uint8_t mod, uint8_t rm, uint8_t reg = 0)
@@ -205,34 +205,34 @@ struct ModRM
         assert(reg != ESP && reg != EBP);
     }
 
-    explicit ModRM(int32_t disp)
-        : modrm{make_modrm(0, 0b101)}, displacement{disp}, width(DWord)
+    explicit ModRM(int32_t disp, PtrWidth in_width = DWord)
+        : modrm{make_modrm(0, 0b101)}, displacement{disp}, width(in_width)
     {}
     ModRM(SIB in_sib, PtrWidth in_width = DWord)
         : modrm{make_modrm(0, 0b100)}, sib{in_sib}, displacement{in_sib.disp}, width(in_width)
     {}
 
-    ModRM(IndirectReg, GPR32 reg, int8_t disp)
-        : modrm{make_modrm(1, reg)}, displacement{disp}, width(DWord)
+    ModRM(IndirectReg, GPR32 reg, int8_t disp, PtrWidth in_width = DWord)
+        : modrm{make_modrm(1, reg)}, displacement{disp}, width(in_width)
     {
         assert(reg != ESP);
     }
     ModRM(SIB in_sib, int8_t disp, PtrWidth in_width = DWord)
         : modrm{make_modrm(1, 0b100)}, sib{in_sib}, displacement{in_sib.disp + disp}, width(in_width)
     {}
-    // TODO : take a look at this
-    ModRM(const SIBOpResult& op)
-        : modrm{make_modrm(0, 0b100)}, sib{op.scale, op.offset, op.base}, width(DWord)
+
+    ModRM(const SIBOpResult& op, PtrWidth in_width = DWord)
+        : modrm{make_modrm(0, 0b100)}, sib{op.scale, op.offset, op.base}, width(in_width)
     {}
-    ModRM(const SIBIndexPair& op)
-        : ModRM(SIBOpResult(op))
+    ModRM(const SIBIndexPair& op, PtrWidth in_width = DWord)
+        : ModRM(SIBOpResult(op), in_width)
     {}
-    ModRM(const SIBOpResultPlusDisp& op)
-        : modrm{make_modrm(1, 0b100)}, sib{op.scale, op.offset, op.base}, displacement{op.disp}, width(DWord)
+    ModRM(const SIBOpResultPlusDisp& op, PtrWidth in_width = DWord)
+        : modrm{make_modrm(1, 0b100)}, sib{op.scale, op.offset, op.base}, displacement{op.disp}, width(in_width)
     {}
 
-    ModRM(IndirectReg, GPR32 reg, int32_t disp)
-        : modrm{make_modrm(0b10, reg)}, displacement{disp}, width(DWord)
+    ModRM(IndirectReg, GPR32 reg, int32_t disp, PtrWidth in_width = DWord)
+        : modrm{make_modrm(0b10, reg)}, displacement{disp}, width(in_width)
     {
         assert(reg != ESP);
     }
@@ -292,6 +292,11 @@ struct Immediate
 
     Immediate(T in_val) : val(in_val)
     {}
+    template <typename U>
+    explicit Immediate(U in_signed) : val(static_cast<T>(in_signed))
+    {
+        static_assert(std::is_integral_v<U>);
+    }
     T val;
 };
 using Imm8  = Immediate<uint8_t>;
@@ -314,6 +319,13 @@ using Rel32 = Relative<int32_t>;
 inline ModRM indirect(GPR32 reg, PtrWidth width = DWord)
 {
     return ModRM{IndirectReg{}, reg, width};
+}
+inline ModRM indirect_off(GPR32 reg, int8_t offset, PtrWidth width = DWord)
+{
+    if (offset)
+        return ModRM{IndirectReg{}, reg, offset, width};
+    else
+        return ModRM{IndirectReg{}, reg, width};
 }
 }
 

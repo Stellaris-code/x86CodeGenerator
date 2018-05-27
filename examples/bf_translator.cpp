@@ -25,6 +25,10 @@ SOFTWARE.
 
 #include "bf_translator.hpp"
 
+#include "bf_peephole.hpp"
+
+#include <iostream>
+
 namespace bfgen
 {
 
@@ -60,27 +64,40 @@ void check_matching_brackets(std::string_view input)
 
 GeneratedCode translate_bf(std::string_view input, BuildFlags flags)
 {
-    BrainfuckGenerator gen;
+    BrainfuckGenerator gen(flags);
 
     gen.prologue();
 
     for (size_t i { 0 }; i < input.size();)
     {
-        auto do_lookahead = [&gen, &input, &i](auto fun, char c)
+        auto do_lookahead = [flags, &gen, &input, &i](auto fun, char c)
         {
-            size_t counter { 0 };
-            do
+            if (flags.opt_level >= BuildFlags::RunLength)
             {
-                ++counter;
-            } while (input[++i] == c);
-            (gen.*fun)(counter);
+                size_t counter { 0 };
+                do
+                {
+                    ++counter;
+                } while (input[++i] == c);
+                (gen.*fun)(counter);
+            }
+            else
+            {
+                (gen.*fun)(1);
+                ++i;
+            }
         };
 
-        if (input.substr(i, 3) == "[-]" || input.substr(i, 3) == "[+]")
+
+        if (flags.opt_level == BuildFlags::All)
         {
-            gen.set(0);
-            i += 3;
-            continue;
+            std::string_view atom = input.substr(i, input.find_first_of("[]", i+1)-i+1);
+            int offset = apply_peephole_optimization(gen, atom);
+            if (offset != -1) // could optimize, skip to next instruction
+            {
+                i += offset;
+                continue;
+            }
         }
 
         switch (input[i])
@@ -105,8 +122,8 @@ GeneratedCode translate_bf(std::string_view input, BuildFlags flags)
                 gen.loop_begin(); break;
             case ']':
                 gen.loop_end(); break;
-            case '!':
-                if (flags.bang_is_breakpoint)
+            case '#':
+                if (flags.hash_is_breakpoint)
                     gen.breakpoint();
                 break;
         }

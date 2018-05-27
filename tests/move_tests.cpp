@@ -100,8 +100,8 @@ TEST(Mov, MovR32RM32)
 {
     {
         CodeGenerator gen;
-        gen.mov(EAX, ModRM{EBX});
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t>{0x8B, 0xC3}));
+        gen.mov(EAX, EBX);
+        EXPECT_EQ(gen.data(), (std::vector<uint8_t>{0x89, 0xD8}));
     }
     {
         CodeGenerator gen;

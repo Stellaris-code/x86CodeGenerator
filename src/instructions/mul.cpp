@@ -1,7 +1,7 @@
 /*
-addsub_tests.cpp
+mul.cpp
 
-Copyright (c) 21 Yann BOUCHER (yann)
+Copyright (c) 24 Yann BOUCHER (yann)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,62 @@ SOFTWARE.
 
 */
 
-#include "gtest/gtest.h"
-
 #include "codegenerator.hpp"
 
-namespace
+namespace x86gen
 {
-using namespace x86gen;
 
-TEST(Add, RM32I32)
+void CodeGenerator::imul(GPR16 reg, ModRM rm)
 {
-    {
-        CodeGenerator gen;
-        gen.add(ECX, Imm32{(uint32_t)0x1234});
+    rm.set_reg(reg);
 
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t>{ 0x81, 0xC1, 0x34, 0x12, 0x00, 0x00 }));
-    }
+    emit<uint8_t>(operand_size_override);
+    emit<uint8_t>(0x0F);
+    emit<uint8_t>(0xAF);
+    emit_modrm(rm);
 }
 
-TEST(Sub, RM32I32)
+void CodeGenerator::imul(GPR32 reg, ModRM rm)
 {
-    {
-        CodeGenerator gen;
-        gen.sub(ECX, Imm32{(uint32_t)0x123456});
+    rm.set_reg(reg);
 
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t> { 0x81, 0xE9, 0x56, 0x34, 0x12, 0x00 } ));
-    }
+    emit<uint8_t>(0x0F);
+    emit<uint8_t>(0xAF);
+    emit_modrm(rm);
 }
+
+void CodeGenerator::imul(GPR16 reg, ModRM rm, Imm8 imm)
+{
+    rm.set_reg(reg);
+
+    emit<uint8_t>(operand_size_override);
+    emit<uint8_t>(0x6B);
+    emit_modrm(rm);
+    emit<uint8_t>(imm.val);
+}
+
+void CodeGenerator::imul(GPR32 reg, ModRM rm, Imm8 imm)
+{
+    rm.set_reg(reg);
+
+    emit<uint8_t>(0x6B);
+    emit_modrm(rm);
+    emit<uint8_t>(imm.val);
+}
+
+void CodeGenerator::imul(GPR16 reg, Imm8 imm)
+{
+    emit<uint8_t>(operand_size_override);
+    emit<uint8_t>(0x6B);
+    emit_modrm(reg);
+    emit<uint8_t>(imm.val);
+}
+
+void CodeGenerator::imul(GPR32 reg, Imm8 imm)
+{
+    emit<uint8_t>(0x6B);
+    emit_modrm(reg);
+    emit<uint8_t>(imm.val);
+}
+
 }

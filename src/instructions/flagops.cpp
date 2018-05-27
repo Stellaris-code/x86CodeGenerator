@@ -1,7 +1,7 @@
 /*
-addsub_tests.cpp
+flagops.cpp
 
-Copyright (c) 21 Yann BOUCHER (yann)
+Copyright (c) 22 Yann BOUCHER (yann)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,19 @@ SOFTWARE.
 
 */
 
-#include "gtest/gtest.h"
-
 #include "codegenerator.hpp"
 
-namespace
+namespace x86gen
 {
-using namespace x86gen;
 
-TEST(Add, RM32I32)
+void CodeGenerator::std()
 {
-    {
-        CodeGenerator gen;
-        gen.add(ECX, Imm32{(uint32_t)0x1234});
-
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t>{ 0x81, 0xC1, 0x34, 0x12, 0x00, 0x00 }));
-    }
+    emit<uint8_t>(0xFD);
 }
 
-TEST(Sub, RM32I32)
+void CodeGenerator::cld()
 {
-    {
-        CodeGenerator gen;
-        gen.sub(ECX, Imm32{(uint32_t)0x123456});
-
-        EXPECT_EQ(gen.data(), (std::vector<uint8_t> { 0x81, 0xE9, 0x56, 0x34, 0x12, 0x00 } ));
-    }
+    emit<uint8_t>(0xFC);
 }
+
 }
