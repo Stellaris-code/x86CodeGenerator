@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall -Wextra -Wno-potentially-evaluated-expression  -rdynamic CMakeFiles/brainfuck.dir/bf_generator.cpp.o CMakeFiles/brainfuck.dir/bf_peephole.cpp.o CMakeFiles/brainfuck.dir/bf_translator.cpp.o CMakeFiles/brainfuck.dir/elf_builder.cpp.o CMakeFiles/brainfuck.dir/main.cpp.o  -o brainfuck ../src/libx86CodeGenerator.a 
