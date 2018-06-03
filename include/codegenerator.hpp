@@ -29,6 +29,9 @@ SOFTWARE.
 #include <cassert>
 
 #include <vector>
+#include <variant>
+
+#include <typeinfo>
 
 #include "registers.hpp"
 #include "addressing.hpp"
@@ -41,36 +44,61 @@ static constexpr uint8_t address_size_override = 0x66;
 
 enum JumpCond : uint8_t
 {
-    JA = 0x7,
-    JAE = 0x3,
-    JB = 0x2,
-    JBE = 0x6,
-    JC = 0x2,
-    JE = 0x4,
-    JG = 0xF,
-    JGE = 0xD,
-    JL = 0xC,
-    JLE = 0xE,
-    JNA = 0x6,
+    JA   = 0x7,
+    JAE  = 0x3,
+    JB   = 0x2,
+    JBE  = 0x6,
+    JC   = 0x2,
+    JE   = 0x4,
+    JG   = 0xF,
+    JGE  = 0xD,
+    JL   = 0xC,
+    JLE  = 0xE,
+    JNA  = 0x6,
     JNAE = 0x2,
-    JNB = 0x3,
+    JNB  = 0x3,
     JNBE = 0x7,
-    JNC = 0x3,
-    JNE = 0x5,
-    JNG = 0xE,
+    JNC  = 0x3,
+    JNE  = 0x5,
+    JNG  = 0xE,
     JNGE = 0xC,
-    JNL = 0xD,
+    JNL  = 0xD,
     JNLE = 0xF,
-    JNO = 0x1,
-    JNP = 0xB,
-    JNS = 0x9,
-    JNZ = 0x5,
-    JO = 0x0,
-    JP = 0xA,
-    JPE = 0xA,
-    JPO = 0xB,
-    JS = 0x8,
-    JZ = 0x4
+    JNO  = 0x1,
+    JNP  = 0xB,
+    JNS  = 0x9,
+    JNZ  = 0x5,
+    JO   = 0x0,
+    JP   = 0xA,
+    JPE  = 0xA,
+    JPO  = 0xB,
+    JS   = 0x8,
+    JZ   = 0x4
+};
+
+typedef std::variant<Imm8,    // 0
+                     Imm16,   // 1
+                     Imm32,   // 2
+                     Rel8,    // 3
+                     Rel16,   // 4
+                     Rel32,   // 5
+                     GPR8,    // 6
+                     GPR16,   // 7
+                     GPR32,   // 8
+                     ModRM,   // 9
+                     JumpCond // A
+                     > Operand;
+
+// TODO : find a less "hacky" way to do this
+class CodeGenerator;
+typedef void(CodeGenerator::*general_gen_func_ptr)(std::vector<Operand>);
+
+// This struct is used in the 'operator<<' interface, to set it's operation
+struct Opcode {
+       bool operator==(Opcode &other) {return m_argument_number == other.m_argument_number &&
+                                       m_parsing_complete_callback == other.m_parsing_complete_callback;};
+       unsigned int m_argument_number = 0;
+       general_gen_func_ptr m_parsing_complete_callback;
 };
 
 class CodeGenerator
@@ -87,6 +115,53 @@ public:
     { return std::move(m_data); }
 
     size_t current_index() const { return m_idx; }
+
+public:
+       /* Those general overloads decide by themselves what overload to execute */
+       void general_std(std::vector<Operand>);
+       void general_cld(std::vector<Operand>);
+       void general_repe_scasb(std::vector<Operand>);
+       void general_repe_scasw(std::vector<Operand>);
+       void general_repe_scasd(std::vector<Operand>);
+       void general_repne_scasb(std::vector<Operand>);
+       void general_repne_scasw(std::vector<Operand>);
+       void general_repne_scasd(std::vector<Operand>);
+       void general_call(std::vector<Operand>);
+       void general_ret(std::vector<Operand>);
+       void general_far_ret(std::vector<Operand>);
+       void general_cmp(std::vector<Operand>);
+       void general_sub(std::vector<Operand>);
+       void general_add(std::vector<Operand>);
+       void general_xor(std::vector<Operand>);
+       void general_imul2(std::vector<Operand>);
+       void general_imul3(std::vector<Operand>);
+       void general_jmp(std::vector<Operand>);
+       void general_jcc(std::vector<Operand>);
+       void general_mov(std::vector<Operand>);
+       void general_lea(std::vector<Operand>);
+       void general_push(std::vector<Operand>);
+       void general_pop(std::vector<Operand>);
+       void general_inc(std::vector<Operand>);
+       void general_dec(std::vector<Operand>);
+       void general_int3(std::vector<Operand>);
+       void general_int(std::vector<Operand>);
+       void general_ud2(std::vector<Operand>);
+
+public:
+       friend CodeGenerator& operator<<(CodeGenerator& to_apply, Opcode a);
+       friend CodeGenerator& operator<<(CodeGenerator& to_apply, Operand a);
+
+private:
+       std::vector<Operand> m_operands_consumed;
+       Opcode m_current_opcode = {0, &CodeGenerator::general_ud2};
+
+       // Every instruction whose number of operands isn't fixed is aliased here for the sake of intercompatibility
+       void imul2(GPR16 a, ModRM b) {imul(a, b);};
+       void imul2(GPR32 a, ModRM b) {imul(a, b);};
+       void imul3(GPR16 a, ModRM b, Imm8 c) {imul(a, b, c);};
+       void imul3(GPR32 a, ModRM b, Imm8 c) {imul(a, b, c);};
+       void imul2(GPR16 a, Imm8 b) {imul(a, b);};
+       void imul2(GPR32 a, Imm8 b) {imul(a, b);};
 
 public:
     void std();
@@ -112,7 +187,7 @@ public:
     void cmp(ModRM, GPR8);
     void cmp(ModRM, GPR16);
     void cmp(ModRM, GPR32);
-    void cmp(GPR8, ModRM);
+    void cmp(GPR8 , ModRM);
     void cmp(GPR16, ModRM);
     void cmp(GPR32, ModRM);
 
@@ -122,7 +197,7 @@ public:
     void sub(ModRM, GPR8);
     void sub(ModRM, GPR16);
     void sub(ModRM, GPR32);
-    void sub(GPR8, ModRM);
+    void sub(GPR8 , ModRM);
     void sub(GPR16, ModRM);
     void sub(GPR32, ModRM);
 
@@ -132,7 +207,7 @@ public:
     void add(ModRM, GPR8);
     void add(ModRM, GPR16);
     void add(ModRM, GPR32);
-    void add(GPR8, ModRM);
+    void add(GPR8 , ModRM);
     void add(GPR16, ModRM);
     void add(GPR32, ModRM);
 
@@ -142,7 +217,7 @@ public:
     void xor_(ModRM, GPR8);
     void xor_(ModRM, GPR16);
     void xor_(ModRM, GPR32);
-    void xor_(GPR8, ModRM);
+    void xor_(GPR8 , ModRM);
     void xor_(GPR16, ModRM);
     void xor_(GPR32, ModRM);
 
@@ -165,16 +240,16 @@ public:
     void mov(ModRM, GPR8 );
     void mov(ModRM, GPR16);
     void mov(ModRM, GPR32);
-    void mov(GPR8,  ModRM);
+    void mov(GPR8 , ModRM);
     void mov(GPR16, ModRM);
     void mov(GPR32, ModRM);
-    void mov(GPR8,  GPR8);
+    void mov(GPR8 , GPR8 );
     void mov(GPR16, GPR16);
     void mov(GPR32, GPR32);
     void mov(GPR8 , Imm8 );
     void mov(GPR16, Imm16);
     void mov(GPR32, Imm32);
-    void mov(ModRM , Imm8);
+    void mov(ModRM, Imm8 );
     void mov(ModRM, Imm16);
     void mov(ModRM, Imm32);
 
